@@ -11,13 +11,8 @@ namespace ListBlobFiles
 
         public static async Task<List<string>> GetBlobFileList(AzureStorageConfig _storageConfig)
         {
-            List<string> filenameUrls = new List<string>();
-
-            // Create storagecredentials object by reading the values from the configuration (appsettings.json)
-            StorageCredentials storageCredentials = new StorageCredentials(_storageConfig.AccountName, _storageConfig.AccountKey);
-
-            // Create cloudstorage account by passing the storagecredentials
-            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, false);
+            // Parse the connection string and return a reference to the storage account.
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_storageConfig.StorageConnectionString);
 
             // Create blob client
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
@@ -28,8 +23,8 @@ namespace ListBlobFiles
             // Set the permission of the container to public
             await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
+            List<string> fileUris = new List<string>();
             BlobContinuationToken continuationToken = null;
-
             BlobResultSegment resultSegment = null;
 
             //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
@@ -42,7 +37,7 @@ namespace ListBlobFiles
 
                 foreach (var blobItem in resultSegment.Results)
                 {
-                    filenameUrls.Add(blobItem.StorageUri.PrimaryUri.ToString());
+                    fileUris.Add(blobItem.StorageUri.PrimaryUri.ToString());
                 }
 
                 //Get the continuation token.
@@ -51,7 +46,7 @@ namespace ListBlobFiles
 
             while (continuationToken != null);
 
-            return await Task.FromResult(filenameUrls);
+            return await Task.FromResult(fileUris);
         }
 
     }
