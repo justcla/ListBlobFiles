@@ -1,5 +1,4 @@
 ﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,44 +8,29 @@ namespace ListBlobFiles
     public class StorageHelper
     {
 
-        public static async Task<List<string>> GetBlobFileList(AzureStorageConfig _storageConfig)
+        public static async Task<List<string>> GetBlobFileList(string storageConnectionString, string containerName)
         {
-            // Parse the connection string and return a reference to the storage account.
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(_storageConfig.StorageConnectionString);
-
-            // Create blob client
+            // Get Reference to Blob Container
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnectionString);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
-
-            // Get reference to the container
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfig.ContainerName);
+            CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
             // Set the permission of the container to public
             await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
 
-            List<string> fileUris = new List<string>();
+            // Fetch info about all files in the container
             BlobContinuationToken continuationToken = null;
-            BlobResultSegment resultSegment = null;
+            BlobResultSegment resultSegment = await container.ListBlobsSegmentedAsync(continuationToken);
+            IEnumerable<IListBlobItem> blobItems = resultSegment.Results;
 
-            //Call ListBlobsSegmentedAsync and enumerate the result segment returned, while the continuation token is non-null.
-            //When the continuation token is null, the last page has been returned and execution can exit the loop.
-            do
+            // Extract the URI of the files into a new list
+            List<string> fileUris = new List<string>();
+            foreach (var blobItem in blobItems)
             {
-                //This overload allows control of the page size. You can return all remaining results by passing null for the maxResults parameter,
-                //or by calling a different overload.
-                resultSegment = await container.ListBlobsSegmentedAsync("", true, BlobListingDetails.All, 10, continuationToken, null, null);
-
-                foreach (var blobItem in resultSegment.Results)
-                {
-                    fileUris.Add(blobItem.StorageUri.PrimaryUri.ToString());
-                }
-
-                //Get the continuation token.
-                continuationToken = resultSegment.ContinuationToken;
+                fileUris.Add(blobItem.StorageUri.PrimaryUri.ToString());
             }
 
-            while (continuationToken != null);
-
-            return await Task.FromResult(fileUris);
+            return fileUris;
         }
 
     }

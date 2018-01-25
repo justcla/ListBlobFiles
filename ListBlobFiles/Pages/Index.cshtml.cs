@@ -17,7 +17,11 @@ namespace ListBlobFiles.Pages
 
         public void OnGet()
         {
-            FilesInContainer = StorageHelper.GetBlobFileList(_storageConfig).GetAwaiter().GetResult();
+            // Fetch the storage configuration (stored in appsettings.json locally, or App Settings on Cloud)
+            string storageConnectionString = _storageConfig.StorageConnectionString;
+            string containerName = _storageConfig.ContainerName;
+
+            FilesInContainer = StorageHelper.GetBlobFileList(storageConnectionString, containerName).GetAwaiter().GetResult();
         }
 
     }
