@@ -1,0 +1,21 @@
+﻿@page
+@using ListBlobFiles.Pages
+@model IndexModel
+
+<h2>List of files in Blob storage container</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Filename</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var filename in Model.FilesInContainer)
+        {
+            <tr>
+                <td>@filename</td>
+            </tr>
+        }
+    </tbody>
+</table>
