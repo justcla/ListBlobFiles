@@ -15,12 +15,8 @@ namespace ListBlobFiles
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
-            // Set the permission of the container to public
-            await container.SetPermissionsAsync(new BlobContainerPermissions { PublicAccess = BlobContainerPublicAccessType.Blob });
-
             // Fetch info about all files in the container
-            BlobContinuationToken continuationToken = null;
-            BlobResultSegment resultSegment = await container.ListBlobsSegmentedAsync(continuationToken);
+            BlobResultSegment resultSegment = await container.ListBlobsSegmentedAsync(null);
             IEnumerable<IListBlobItem> blobItems = resultSegment.Results;
 
             // Extract the URI of the files into a new list

@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 
 namespace ListBlobFiles.Pages
@@ -8,20 +8,19 @@ namespace ListBlobFiles.Pages
     {
         public List<string> FilesInContainer { get; private set; }
 
-        private readonly AzureStorageConfig _storageConfig;
+        private string _storageConnectionString;
+        private string _containerName;
 
-        public IndexModel(IOptions<AzureStorageConfig> optionsAccessor)
+        public IndexModel(IConfiguration config)
         {
-            _storageConfig = optionsAccessor.Value;
+            // Fetch the storage configuration (stored in appsettings.json locally, or App Settings on Cloud)
+            _storageConnectionString = config["StorageConnectionString"];
+            _containerName = config["ContainerName"];
         }
 
         public void OnGet()
         {
-            // Fetch the storage configuration (stored in appsettings.json locally, or App Settings on Cloud)
-            string storageConnectionString = _storageConfig.StorageConnectionString;
-            string containerName = _storageConfig.ContainerName;
-
-            FilesInContainer = StorageHelper.GetBlobFileList(storageConnectionString, containerName).GetAwaiter().GetResult();
+            FilesInContainer = StorageHelper.GetBlobFileList(_storageConnectionString, _containerName).GetAwaiter().GetResult();
         }
 
     }
