@@ -4,6 +4,16 @@
 
 <h2>List of files in Blob storage container</h2>
 
+@if (Model.FilesInContainer == null)
+{
+    <p>Error: Unable to fetch file information from storage container.</p>
+}
+else if (Model.FilesInContainer.Count == 0)
+{
+    <p>No files found in storage container.</p>
+}
+else
+{
 <table>
     <thead>
         <tr>
@@ -19,3 +29,4 @@
         }
     </tbody>
 </table>
+}

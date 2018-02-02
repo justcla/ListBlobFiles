@@ -10,17 +10,20 @@ namespace ListBlobFiles.Pages
 
         private string _storageConnectionString;
         private string _containerName;
+        private readonly StorageHelper storageHelper;
 
-        public IndexModel(IConfiguration config)
+        public IndexModel(IConfiguration config, StorageHelper storageHelper)
         {
             // Fetch the storage configuration (stored in appsettings.json locally, or App Settings on Cloud)
             _storageConnectionString = config["StorageConnectionString"];
             _containerName = config["ContainerName"];
+            this.storageHelper = storageHelper;
         }
 
         public void OnGet()
         {
-            FilesInContainer = StorageHelper.GetBlobFileList(_storageConnectionString, _containerName).GetAwaiter().GetResult();
+            // Populate the files list each time a page is called.
+            FilesInContainer = storageHelper.GetBlobFileListAsync(_storageConnectionString, _containerName).GetAwaiter().GetResult();
         }
 
     }
